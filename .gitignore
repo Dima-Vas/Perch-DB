@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Test data and developer logs
+data/*
+*.xml
+*.txt
+cmake/*
+
+# Other ignores
+NodeAST.hpp
+*.swp

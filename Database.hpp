@@ -1,0 +1,7 @@
+
+
+class Database {
+    public :
+        
+    private:
+};
