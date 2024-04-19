@@ -40,3 +40,7 @@ cmake/*
 # Other ignores
 NodeAST.hpp
 *.swp
+.vscode/
+build/
+cmake/
+docs/

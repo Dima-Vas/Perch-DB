@@ -1,7 +1,0 @@
-
-
-class Database {
-    public :
-        
-    private:
-};

@@ -11,6 +11,7 @@
 #include <cctype>
 #include <algorithm>
 #include <unordered_map>
+#include <string>
 #include <string_view>
 
 enum QueryToken {
@@ -24,7 +25,6 @@ private:
     QueryParser() {}
 
     bool isReadingVal = false;
-    // TODO : I have no clue why marking this as static makes it compile with no errors
 	static constexpr int myhash(std::string_view str) noexcept {
         unsigned int hash = 5381;
         for (char c : str)
