@@ -33,18 +33,18 @@ int main(int argc, char* argv[]) {
     // de.createDatabase("database");
 
     size_t i = 0;
-    while (i < 10000) {
+    while (i < 1000) {
         Table t(std::string("/opt/pdb/db/testdb/annual/"));
         t.readBuffers();
         RowBuffer* tt = t.getBuffer(0);
-        PDataType** data_ptr = tt->getRow(99)->getRow(); // TODO : last row is not read so segfault and exceptions. All fine with user but not on large lad. Check commas in brackets
+        PDataType** data_ptr = tt->getRow(0)->getRow();
         size_t last_col = t.getStructure().size() - 1;
         switch (t.getStructure()[last_col]) {
             case PDataEnum::INT :
-                std::cout << dynamic_cast<PInt*>(data_ptr[last_col])->val() << std::endl;
+                // std::cout << dynamic_cast<PInt*>(data_ptr[last_col])->val() << std::endl;
                 break;
             case PDataEnum::STRING:
-                std::cout << dynamic_cast<PString*>(data_ptr[last_col])->val() << std::endl;
+                // std::cout << dynamic_cast<PString*>(data_ptr[last_col])->val() << std::endl;
                 break;
         }
         ++i;

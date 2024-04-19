@@ -21,7 +21,7 @@ public:
     DataRow() = delete;
 
     ~DataRow() {
-        for (size_t i = 0; i < len - 1; ++i) {
+        for (size_t i = 0; i < len; ++i) {
             delete data[i];
         }
         delete[] data;
