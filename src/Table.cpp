@@ -64,7 +64,6 @@ void Table::fromMeta(const std::string& path) {
         num_files = atoi(line.c_str());
     }
     file.close();
-    buffers = new RowBuffer[num_files];
     col_num = structure.size();
 }
 
@@ -84,7 +83,7 @@ void Table::readBuffer(std::ifstream& file, size_t buff_idx) {
             if (in_quotes) {
                 entry += "," + token;
                 if (token.back() == '"' || token.back() == '\r') {
-                    entry = entry.substr(1, entry.size() - 2);  // Remove leading and trailing quotes
+                    entry = entry.substr(1, entry.size() - 2);
                     in_quotes = false;
                 }
             } else {
@@ -116,6 +115,7 @@ void Table::readBuffer(std::ifstream& file, size_t buff_idx) {
  * @brief Reads the next portion of table data to buffers.
  */
 void Table::readBuffers() { // TODO : threadpool
+    buffers = new RowBuffer[num_files];
     std::vector<std::ifstream> files;
     std::string name_str;
     try {

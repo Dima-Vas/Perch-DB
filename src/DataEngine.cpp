@@ -78,7 +78,9 @@ bool DataEngine::createTable(const std::string& tableName, const std::string& db
     return false;
 }
 
-// Table& DataEngine::getTable(const std::string& tableName, const std::string& dbName) {
-    
-//     return Table{""};
-// }
+Table DataEngine::getTable(const std::string& tableName, const std::string& dbName) {
+    std::ostringstream ss;
+    ss << this->dbBasePath << "/" << dbName << "/" << tableName << "/";
+    Table output{ss.str()};
+    return output;
+}

@@ -28,13 +28,13 @@ int main(int argc, char* argv[]) {
     // if (!metaPath) {
     //     metaPath = "/opt/pdb/meta/";
     // }
-    // DataEngine de{dbPath, metaPath};
+    // 
     // if (!de.deleteDatabase("database")) return 1;
     // de.createDatabase("database");
-
+    DataEngine de{"/opt/pdb/db", "/opt/pdb/meta/"};
+    Table t = de.getTable("users", "database");
     size_t i = 0;
     while (i < 1000) {
-        Table t(std::string("/opt/pdb/db/testdb/annual/"));
         t.readBuffers();
         RowBuffer* tt = t.getBuffer(0);
         PDataType** data_ptr = tt->getRow(0)->getRow();

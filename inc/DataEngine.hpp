@@ -24,6 +24,6 @@ public:
 
     bool createTable(const std::string& tableName, const std::string& dbName);
 
-    Table& getTable(const std::string& tableName, const std::string& dbName);
+    Table getTable(const std::string& tableName, const std::string& dbName);
 };
 
