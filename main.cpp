@@ -25,10 +25,10 @@ int main(int argc, char* argv[]) {
         size_t last_col = t.getStructure().size() - 1;
         switch (t.getStructure()[last_col]) {
             case PDataEnum::INT :
-                // std::cout << dynamic_cast<PInt*>(data_ptr[last_col])->val() << std::endl;
+                std::cout << dynamic_cast<PInt*>(data_ptr[last_col])->val() << std::endl;
                 break;
             case PDataEnum::STRING:
-                // std::cout << dynamic_cast<PString*>(data_ptr[last_col])->val() << std::endl;
+                std::cout << dynamic_cast<PString*>(data_ptr[last_col])->val() << std::endl;
                 break;
         }
         ++i;

@@ -13,6 +13,14 @@
 #include "PInt.hpp"
 #include "PString.hpp"
 
+#ifdef __linux__
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+#endif
+
+
 
 /**
  * @brief initializes the Table from the metafile path
@@ -68,65 +76,89 @@ void Table::fromMeta(const std::string& path) {
     col_num = structure.size();
 }
 
-void Table::readBuffer(std::ifstream& file, size_t buff_idx) {
-    size_t rows_read = 0;
+void Table::processFile(char* file_data, size_t file_size, size_t buff_idx) {
     std::string row;
-    std::size_t i;
-    while (rows_read < MAXTABLEBUFFSIZE && std::getline(file, row)) {
-        PDataType** toSet = new PDataType*[col_num];
-        DataRow* toPut = new DataRow{col_num};
-        std::istringstream ss(row);
-        std::string token;
-        i = 0;
-        bool in_quotes = false;
-        std::string entry;
-        while (std::getline(ss, token, ',')) {
-            if (in_quotes) {
-                entry += "," + token;
-                if (token.back() == '"' || token.back() == '\r') {
-                    entry = entry.substr(1, entry.size() - 2);
-                    in_quotes = false;
-                }
+    size_t rows_read = 0;
+    size_t i = 0;
+    std::string entry;
+    bool in_quotes = false;
+    PDataType** toSet = new PDataType*[col_num];
+    DataRow* toPut;
+    size_t curr_col = 0;
+
+    while (i < file_size && rows_read < MAXTABLEBUFFSIZE) {
+        char ch = file_data[i++];
+        if (in_quotes) {
+            if (ch == '"') {
+                in_quotes = false;
             } else {
-                if (token.front() == '"') {
-                    entry = token.substr(1);
-                    in_quotes = true;
-                } else {
-                    entry = token;
-                }
+                entry += ch;
             }
-            if (!in_quotes) {
-                PDataEnum dataType = structure[i];
+        } else {
+            if (ch == '"') {
+                in_quotes = true;
+            } else if (ch == ',' || ch == '\n') {
+                PDataEnum dataType = structure[curr_col];
                 if (dataType == PDataEnum::INT) {
-                    toSet[i] = new PInt(stoi(entry));
+                    toSet[curr_col] = new PInt(stoi(entry));
                 } else if (dataType == PDataEnum::STRING) {
-                    toSet[i] = new PString(entry);
+                    toSet[curr_col] = new PString(entry);
                 }
-                ++i;
+                entry.clear();
+                ++curr_col;
+            } else {
+                entry += ch;
             }
         }
-        toPut->setData(toSet);
-        buffers[buff_idx].addRow(toPut);
-        ++rows_read;
+        if (ch == '\n') {
+            toPut = new DataRow{col_num};
+            toPut->setData(toSet);
+            buffers[buff_idx].addRow(toPut);
+            ++i;
+            ++rows_read;
+            if (i < file_size && rows_read < MAXTABLEBUFFSIZE) {
+                toSet = new PDataType*[col_num];
+            }
+            curr_col = 0;
+            continue;
+        }
     }
-    file.close();
+}
+
+void Table::readBuffer(std::string& file_name, size_t buff_idx) {
+    int fd = open(file_name.c_str(), O_RDONLY);
+    if (fd == -1) {
+        std::cerr << "Bad open() in readBuffer(): " << file_name << strerror(errno) << std::endl;
+        throw std::runtime_error("Bad open() in readBuffer()");
+    }
+    struct stat sb;
+    if (fstat(fd, &sb) == -1) {
+        close(fd);
+        std::cerr << "Bad fstat() in readBuffer(): " << file_name << strerror(errno) << std::endl;
+        throw std::runtime_error("Bad fstat() in readBuffer():");
+    }
+    size_t file_size = sb.st_size;
+    char* file_data = static_cast<char*>(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    if (file_data == MAP_FAILED) {
+        close(fd);
+        std::cerr << "Bad mmap() in readBuffer() : " << file_name << strerror(errno) << std::endl;
+        throw std::runtime_error("Bad mmap() in readBuffer()");
+    }
+    processFile(file_data, file_size, buff_idx);
 }
 
 /**
  * @brief Reads the next portion of table data to buffers.
  */
 void Table::readBuffers() { // TODO : threadpool
-    std::vector<std::ifstream> files;
+    std::vector<std::string> files;
     std::string name_str;
     try {
         for (size_t i = 0; i < num_files; ++i) {
             std::ostringstream filepath;
             filepath << basepath << i + 1  << ".pdb";
             name_str = filepath.str();
-            files.push_back(std::move(std::ifstream(name_str)));
-            if (!files[i].is_open()){
-                throw std::runtime_error("Bad readBuffers()");
-            }
+            files.push_back(name_str);
         }
         std::vector<std::thread> thr_vec;
         for (size_t i = 0; i < num_files; ++i) {
@@ -136,36 +168,23 @@ void Table::readBuffers() { // TODO : threadpool
             thr.join();
         }
     } catch (const std::exception& e) {
-        for (auto& file : files) {
-            file.close();
-        }
-        std::cerr << "Bad readBuffers() : failure to open table file : " << strerror(errno) << std::endl;
+        std::cerr << "Bad readBuffers() : failure to open table file : " << e.what() << std::endl;
         std::cerr << "This is most likely a bug in PDB implementation" << std::endl;
         throw;
     }
 }
 
 void Table::readBuffersSeq() {
-    std::vector<std::ifstream> files;
     std::string name_str;
-    buffers = new RowBuffer[num_files];
     try {
         for (size_t i = 0; i < num_files; ++i) {
             std::ostringstream filepath;
             filepath << basepath << i + 1  << ".pdb";
             name_str = filepath.str();
-            std::ifstream file(name_str);
-            if (!file.is_open()) {
-                throw std::runtime_error("Bad readBuffers()");
-            }
-            readBuffer(file, i);
-            file.close();
+            readBuffer(name_str, i);
         }
     } catch (const std::exception& e) {
-        for (auto& file : files) {
-            file.close();
-        }
-        std::cerr << "Bad readBuffers() : failure to open table file : " << strerror(errno) << std::endl;
+        std::cerr << "Bad readBuffersSeq() : " << e.what() << std::endl;
         std::cerr << "This is most likely a bug in PDB implementation" << std::endl;
         throw;
     }

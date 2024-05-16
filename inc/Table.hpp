@@ -11,7 +11,7 @@
 
 typedef struct RowBuffer {
     DataRow* first_row = nullptr;
-    std::size_t rows_read = 0;
+    size_t rows_read = 0;
     DataRow* last_row = nullptr;
 
     void clearBuffer() noexcept {
@@ -91,15 +91,16 @@ private:
     std::string name;
     std::vector<PDataEnum> structure;
     std::vector<std::string> col_names;
-    std::size_t pk_col_idx;
+    size_t pk_col_idx;
     uint8_t num_files; // max 255 data files per table
     RowBuffer* buffers;
     std::string basepath;
-    std::size_t row_num;
-    std::size_t col_num;
+    size_t row_num;
+    size_t col_num;
 
     void fromMeta(const std::string& path);
 
-    void readBuffer(std::ifstream& file, size_t buff_idx);
+    void readBuffer(std::string& file, size_t buff_idx);
 
+    void processFile(char* file_data, size_t file_size, size_t buff_idx);
 };

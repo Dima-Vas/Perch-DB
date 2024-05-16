@@ -29,7 +29,7 @@ public:
 
     DataRow(size_t N) : len{N} {}
 
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return len;
     }
 
@@ -42,7 +42,7 @@ public:
     }
 
     std::string strValAt(size_t idx) const {
-        std::size_t num_rows = size();
+        size_t num_rows = size();
         if (idx >= num_rows) {
             std::cerr << "Bad idx in DataRow's strValAt()" << num_rows << std::endl;
             throw std::runtime_error{"Bad strValAt() in DataRow : idx out of range"};

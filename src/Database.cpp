@@ -27,8 +27,8 @@ public:
 private:
     std::string name;
     std::string root_path;
-    std::size_t row_num;
-    std::size_t col_num;
+    size_t row_num;
+    size_t col_num;
 
     std::map<RecordID, DataRow> cache_data;
 };
