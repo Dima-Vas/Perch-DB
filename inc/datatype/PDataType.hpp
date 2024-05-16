@@ -11,8 +11,6 @@ public:
 
     virtual ~PDataType() {};
 
-    // PDataType(PDataType&&) = delete;
-
     virtual std::string valAsStr() const = 0;
 private:
 };

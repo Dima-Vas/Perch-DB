@@ -63,6 +63,7 @@ void Table::fromMeta(const std::string& path) {
     } else {
         num_files = atoi(line.c_str());
     }
+    buffers = new RowBuffer[num_files];
     file.close();
     col_num = structure.size();
 }
@@ -115,7 +116,6 @@ void Table::readBuffer(std::ifstream& file, size_t buff_idx) {
  * @brief Reads the next portion of table data to buffers.
  */
 void Table::readBuffers() { // TODO : threadpool
-    buffers = new RowBuffer[num_files];
     std::vector<std::ifstream> files;
     std::string name_str;
     try {
@@ -148,6 +148,7 @@ void Table::readBuffers() { // TODO : threadpool
 void Table::readBuffersSeq() {
     std::vector<std::ifstream> files;
     std::string name_str;
+    buffers = new RowBuffer[num_files];
     try {
         for (size_t i = 0; i < num_files; ++i) {
             std::ostringstream filepath;

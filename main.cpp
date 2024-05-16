@@ -16,26 +16,10 @@ Basic Functionality Implementation :
 You can check .xml for some overall details.
 */
 int main(int argc, char* argv[]) {
-    std::cout << "\033[1;34mWelcome to Perch DB\033[0m\n" << std::endl;
-    // auto& qp = QueryParser::getParserInstance();
-    // std::string query = "CREATE DATABASE 'database'";
-    // qp.processQuery(query);
-    // const char* dbPath = std::getenv("PDB_DBPATH");
-    // const char* metaPath = std::getenv("PDF_METAPATH");
-    // if (!dbPath) {
-    //     dbPath = "/opt/pdb/db/";
-    // }
-    // if (!metaPath) {
-    //     metaPath = "/opt/pdb/meta/";
-    // }
-    // 
-    // if (!de.deleteDatabase("database")) return 1;
-    // de.createDatabase("database");
-    DataEngine de{"/opt/pdb/db", "/opt/pdb/meta/"};
-    Table t = de.getTable("users", "database");
+    Table t{"/opt/pdb/db/testdb/annual/"};
     size_t i = 0;
-    while (i < 1000) {
-        t.readBuffers();
+    while (i < 100) {
+        t.readBuffersSeq();
         RowBuffer* tt = t.getBuffer(0);
         PDataType** data_ptr = tt->getRow(0)->getRow();
         size_t last_col = t.getStructure().size() - 1;

@@ -44,3 +44,4 @@ NodeAST.hpp
 build/
 cmake/
 docs/
+*.drawio
