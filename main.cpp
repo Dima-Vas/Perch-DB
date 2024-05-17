@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     Table t{"/opt/pdb/db/testdb/annual/"};
     size_t i = 0;
     while (i < 100) {
-        t.readBuffersSeq();
+        t.readBuffers();
         RowBuffer* tt = t.getBuffer(0);
         PDataType** data_ptr = tt->getRow(0)->getRow();
         size_t last_col = t.getStructure().size() - 1;

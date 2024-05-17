@@ -80,7 +80,7 @@ void Table::processFile(char* file_data, size_t file_size, size_t buff_idx) {
     std::string row;
     size_t rows_read = 0;
     size_t i = 0;
-    std::string entry;
+    std::ostringstream entry;
     bool in_quotes = false;
     PDataType** toSet = new PDataType*[col_num];
     DataRow* toPut;
@@ -92,22 +92,25 @@ void Table::processFile(char* file_data, size_t file_size, size_t buff_idx) {
             if (ch == '"') {
                 in_quotes = false;
             } else {
-                entry += ch;
+                entry << ch;
             }
         } else {
             if (ch == '"') {
                 in_quotes = true;
             } else if (ch == ',' || ch == '\n') {
                 PDataEnum dataType = structure[curr_col];
+                std::string x = entry.str();
                 if (dataType == PDataEnum::INT) {
-                    toSet[curr_col] = new PInt(stoi(entry));
+                    toSet[curr_col] = new PInt(stoi(entry.str()));
                 } else if (dataType == PDataEnum::STRING) {
-                    toSet[curr_col] = new PString(entry);
+                    toSet[curr_col] = new PString(entry.str());
                 }
+                entry.str("");
                 entry.clear();
+                x = entry.str();
                 ++curr_col;
             } else {
-                entry += ch;
+                entry << ch;
             }
         }
         if (ch == '\n') {
