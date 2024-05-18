@@ -16,12 +16,11 @@ Basic Functionality Implementation :
 You can check .xml for some overall details.
 */
 int main(int argc, char* argv[]) {
-    Table t{"/opt/pdb/db/testdb/annual/"};
     size_t i = 0;
-    while (i < 100) {
-        t.readBuffers();
-        RowBuffer* tt = t.getBuffer(0);
-        PDataType** data_ptr = tt->getRow(0)->getRow();
+    size_t cycles = std::stoull(argv[1]);
+    while (i < cycles) {
+        Table t{"/opt/pdb/db/testdb/annual/"};
+        PDataType** data_ptr = t.get(612)->getData();
         size_t last_col = t.getStructure().size() - 1;
         switch (t.getStructure()[last_col]) {
             case PDataEnum::INT :

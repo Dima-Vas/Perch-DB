@@ -33,7 +33,7 @@ public:
         return len;
     }
 
-    PDataType** getRow() const noexcept{
+    PDataType** getData() const noexcept{
         return data;
     }
 
