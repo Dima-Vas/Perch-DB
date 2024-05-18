@@ -12,6 +12,7 @@
 #include "Table.hpp"
 #include "PInt.hpp"
 #include "PString.hpp"
+#include "ThreadPool.hpp"
 
 #ifdef __linux__
     #include <sys/mman.h>
@@ -76,15 +77,15 @@ void Table::fromMeta(const std::string& path) {
     col_num = structure.size();
 }
 
-void Table::processFile(char* file_data, size_t file_size, size_t buff_idx) {
+void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
     std::string row;
-    size_t rows_read = 0;
-    size_t i = 0;
+    size_t  rows_read = 0;
+    size_t  i = 0;
     std::ostringstream entry;
     bool in_quotes = false;
     PDataType** toSet = new PDataType*[col_num];
     DataRow* toPut;
-    size_t curr_col = 0;
+    size_t  curr_col = 0;
 
     while (i < file_size && rows_read < MAXTABLEBUFFSIZE) {
         char ch = file_data[i++];
@@ -128,7 +129,7 @@ void Table::processFile(char* file_data, size_t file_size, size_t buff_idx) {
     }
 }
 
-void Table::readBuffer(std::string& file_name, size_t buff_idx) {
+void Table::readBuffer(std::string& file_name, size_t  buff_idx) {
     int fd = open(file_name.c_str(), O_RDONLY);
     if (fd == -1) {
         std::cerr << "Bad open() in readBuffer(): " << file_name << strerror(errno) << std::endl;
@@ -140,7 +141,7 @@ void Table::readBuffer(std::string& file_name, size_t buff_idx) {
         std::cerr << "Bad fstat() in readBuffer(): " << file_name << strerror(errno) << std::endl;
         throw std::runtime_error("Bad fstat() in readBuffer():");
     }
-    size_t file_size = sb.st_size;
+    size_t  file_size = sb.st_size;
     char* file_data = static_cast<char*>(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
     if (file_data == MAP_FAILED) {
         close(fd);
@@ -148,39 +149,42 @@ void Table::readBuffer(std::string& file_name, size_t buff_idx) {
         throw std::runtime_error("Bad mmap() in readBuffer()");
     }
     processFile(file_data, file_size, buff_idx);
+    munmap(file_data, file_size);
 }
 
 /**
  * @brief Reads the next portion of table data to buffers.
  */
-void Table::readBuffers() { // TODO : threadpool
+void Table::readBuffers() {
     std::vector<std::string> files;
     std::string name_str;
+    size_t thread_num = 8;
+    ThreadPool<decltype(&Table::readBuffer), Table*, std::string, size_t > tp{thread_num, &Table::readBuffer};
     try {
-        for (size_t i = 0; i < num_files; ++i) {
+        for (size_t  i = 0; i < num_files; ++i) {
             std::ostringstream filepath;
             filepath << basepath << i + 1  << ".pdb";
             name_str = filepath.str();
             files.push_back(name_str);
         }
         std::vector<std::thread> thr_vec;
-        for (size_t i = 0; i < num_files; ++i) {
-            thr_vec.push_back(std::thread(&Table::readBuffer, this, std::ref(files[i]), i));
-        }
-        for (auto& thr : thr_vec) {
-            thr.join();
+        for (size_t  i = 0; i < num_files; ++i) {
+            tp.enqueue(this, std::move(files[i]), std::move(i));
         }
     } catch (const std::exception& e) {
         std::cerr << "Bad readBuffers() : failure to open table file : " << e.what() << std::endl;
         std::cerr << "This is most likely a bug in PDB implementation" << std::endl;
         throw;
     }
+    for (size_t i = 0; i < thread_num; ++i) {
+        tp.enqueue(nullptr, "", -1ull);
+    }
 }
 
 void Table::readBuffersSeq() {
     std::string name_str;
     try {
-        for (size_t i = 0; i < num_files; ++i) {
+        for (size_t  i = 0; i < num_files; ++i) {
             std::ostringstream filepath;
             filepath << basepath << i + 1  << ".pdb";
             name_str = filepath.str();

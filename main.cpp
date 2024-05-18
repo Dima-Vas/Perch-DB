@@ -16,12 +16,12 @@ Basic Functionality Implementation :
 You can check .xml for some overall details.
 */
 int main(int argc, char* argv[]) {
-    size_t i = 0;
-    size_t cycles = std::stoull(argv[1]);
+    size_t  i = 0;
+    size_t  cycles = std::stoull(argv[1]);
     while (i < cycles) {
         Table t{"/opt/pdb/db/testdb/annual/"};
         PDataType** data_ptr = t.get(612)->getData();
-        size_t last_col = t.getStructure().size() - 1;
+        size_t  last_col = t.getStructure().size() - 1;
         switch (t.getStructure()[last_col]) {
             case PDataEnum::INT :
                 std::cout << dynamic_cast<PInt*>(data_ptr[last_col])->val() << std::endl;
