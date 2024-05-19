@@ -19,9 +19,12 @@
     #include <sys/stat.h>
     #include <unistd.h>
     #include <fcntl.h>
+    #include "linux/TableLinux.hpp"
 #endif
 
-
+#ifdef _WIN32
+    #include "windows/TableWindows.hpp"
+#endif
 
 /**
  * @brief initializes the Table from the metafile path
@@ -46,9 +49,9 @@ void Table::fromMeta(const std::string& path) {
         std::string type;
         while (iss >> type) {
             if (type == "Int")
-                structure.push_back(PDataEnum::INT);
+                structure.push_back(PDataEnum::PINTGR);
             else if (type == "Str")
-                structure.push_back(PDataEnum::STRING);
+                structure.push_back(PDataEnum::PSTRING);
         }
     }
     if (std::getline(file, line)) {
@@ -77,6 +80,7 @@ void Table::fromMeta(const std::string& path) {
     col_num = structure.size();
 }
 
+
 void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
     std::string row;
     size_t  rows_read = 0;
@@ -101,9 +105,9 @@ void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
             } else if (ch == ',' || ch == '\n') {
                 PDataEnum dataType = structure[curr_col];
                 std::string x = entry.str();
-                if (dataType == PDataEnum::INT) {
+                if (dataType == PDataEnum::PINTGR) {
                     toSet[curr_col] = new PInt(stoi(entry.str()));
-                } else if (dataType == PDataEnum::STRING) {
+                } else if (dataType == PDataEnum::PSTRING) {
                     toSet[curr_col] = new PString(entry.str());
                 }
                 entry.str("");
@@ -130,26 +134,13 @@ void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
 }
 
 void Table::readBuffer(std::string& file_name, size_t  buff_idx) {
-    int fd = open(file_name.c_str(), O_RDONLY);
-    if (fd == -1) {
-        std::cerr << "Bad open() in readBuffer(): " << file_name << strerror(errno) << std::endl;
-        throw std::runtime_error("Bad open() in readBuffer()");
-    }
-    struct stat sb;
-    if (fstat(fd, &sb) == -1) {
-        close(fd);
-        std::cerr << "Bad fstat() in readBuffer(): " << file_name << strerror(errno) << std::endl;
-        throw std::runtime_error("Bad fstat() in readBuffer():");
-    }
-    size_t  file_size = sb.st_size;
-    char* file_data = static_cast<char*>(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
-    if (file_data == MAP_FAILED) {
-        close(fd);
-        std::cerr << "Bad mmap() in readBuffer() : " << file_name << strerror(errno) << std::endl;
-        throw std::runtime_error("Bad mmap() in readBuffer()");
-    }
-    processFile(file_data, file_size, buff_idx);
-    munmap(file_data, file_size);
+#ifdef __linux__
+    readBufferLinux(file_name, buff_idx);
+#endif
+#ifdef _WIN32
+    readBufferWindows(file_name, buff_idx);
+#endif
+
 }
 
 /**

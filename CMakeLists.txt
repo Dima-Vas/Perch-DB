@@ -13,6 +13,12 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(${PROJECT_NAME} main.cpp src/DataEngine.cpp src/Table.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE inc/ inc/datatype/)
+if (WIN32)
+    target_include_directories(${PROJECT_NAME} PRIVATE inc/ inc/windows/)
+endif (WIN32)
+if (UNIX)
+    target_include_directories(${PROJECT_NAME} PRIVATE inc/ inc/linux/)
+endif (UNIX)
 target_link_libraries (${PROJECT_NAME} pthread)
 
 if (DEFINED ${MEM_DEBUG})

@@ -10,20 +10,16 @@ private:
     const char* metaBasePath;
 public:
 
-    constexpr DataEngine() noexcept;
-
-    constexpr DataEngine(const char* aDbBasePath, const char* aMetaBasePath) noexcept : 
-    dbBasePath(aDbBasePath),
-    metaBasePath(aMetaBasePath) {};
+    constexpr DataEngine() noexcept {};
 
     ~DataEngine() = default;
 
-    bool createDatabase(const std::string& name);
+    void initTable(const std::string& tableName, const std::vector<std::string>& columnNames,
+                int rowsReserve, int primaryKeyIndex, const std::vector<PDataEnum>& columnTypes);
 
-    bool deleteDatabase(const std::string& name);
+    Table getTable(const std::string& tableName);
 
-    bool createTable(const std::string& tableName, const std::string& dbName);
-
-    Table getTable(const std::string& tableName, const std::string& dbName);
+private:
+    std::string dataEnumToString(PDataEnum dataEnum) const;
 };
 

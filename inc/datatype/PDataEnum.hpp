@@ -2,6 +2,7 @@
 #pragma once
 
 enum PDataEnum {
-    INT,
-    STRING
+    PINTGR,
+    PSTRING,
+    PDOUBLE
 };

@@ -77,7 +77,6 @@ public:
         }
     }
 
-    // TODO : Make stringHashes private static constexpr
     std::optional<QueryToken> checkIfToken(std::stringstream& bufferToCheck) {
 		std::string bStr = bufferToCheck.str();
 		std::transform(bStr.begin(), bStr.end(), bStr.begin(),
@@ -86,7 +85,6 @@ public:
         static constexpr int databaseHash = myhash("database");
         static constexpr int ifHash = myhash("if");
         int hashRes = myhash(bStr.c_str());
-//        std::cout << bStr << std::endl;
 		switch(hashRes) {
 			case createHash :
                 std::cout << "Found CREATE" << std::endl;
