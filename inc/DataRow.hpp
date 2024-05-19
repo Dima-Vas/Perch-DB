@@ -13,6 +13,7 @@
 #include "PDataType.hpp"
 #include "PInt.hpp"
 #include "PString.hpp"
+#include "PDouble.hpp"
 
 // std::array<DataRow, std::atol(::getenv("PDB_BUFFSIZE"))> ROWBUFFER;
 

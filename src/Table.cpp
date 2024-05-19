@@ -12,6 +12,7 @@
 #include "Table.hpp"
 #include "PInt.hpp"
 #include "PString.hpp"
+#include "PDouble.hpp"
 #include "ThreadPool.hpp"
 
 #ifdef __linux__
@@ -52,6 +53,8 @@ void Table::fromMeta(const std::string& path) {
                 structure.push_back(PDataEnum::PINTGR);
             else if (type == "Str")
                 structure.push_back(PDataEnum::PSTRING);
+            else if (type == "Dbl")
+                structure.push_back(PDataEnum::PDOUBLE);
         }
     }
     if (std::getline(file, line)) {
@@ -80,6 +83,20 @@ void Table::fromMeta(const std::string& path) {
     col_num = structure.size();
 }
 
+PDataType* formRowValue(std::string& entry, PDataEnum dataType) {
+    switch (dataType) {
+        case PDataEnum::PINTGR:
+            return new PInt(std::stoi(entry));
+        case PDataEnum::PSTRING:
+            return new PString(entry);
+        case PDataEnum::PDOUBLE:
+            return new PDouble(std::stod(entry));
+            break;
+        default:
+            throw std::runtime_error("Bad processFile() : PDataEnum not recognized");
+    }
+}
+
 
 void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
     std::string row;
@@ -104,15 +121,10 @@ void Table::processFile(char* file_data, size_t  file_size, size_t  buff_idx) {
                 in_quotes = true;
             } else if (ch == ',' || ch == '\n') {
                 PDataEnum dataType = structure[curr_col];
-                std::string x = entry.str();
-                if (dataType == PDataEnum::PINTGR) {
-                    toSet[curr_col] = new PInt(stoi(entry.str()));
-                } else if (dataType == PDataEnum::PSTRING) {
-                    toSet[curr_col] = new PString(entry.str());
-                }
+                std::string entry_str = entry.str();
+                toSet[curr_col] = formRowValue(entry_str, dataType);
                 entry.str("");
                 entry.clear();
-                x = entry.str();
                 ++curr_col;
             } else {
                 entry << ch;
@@ -149,7 +161,7 @@ void Table::readBuffer(std::string& file_name, size_t  buff_idx) {
 void Table::readBuffers() {
     std::vector<std::string> files;
     std::string name_str;
-    size_t thread_num = 8;
+    size_t thread_num = 4;
     ThreadPool<decltype(&Table::readBuffer), Table*, std::string, size_t > tp{thread_num, &Table::readBuffer};
     try {
         for (size_t  i = 0; i < num_files; ++i) {

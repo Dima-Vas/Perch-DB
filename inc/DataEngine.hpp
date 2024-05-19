@@ -8,6 +8,8 @@ class DataEngine {
 private:
     const char* dbBasePath;
     const char* metaBasePath;
+
+    std::string dataEnumToString(PDataEnum dataEnum) const;
 public:
 
     constexpr DataEngine() noexcept {};
@@ -18,8 +20,5 @@ public:
                 int rowsReserve, int primaryKeyIndex, const std::vector<PDataEnum>& columnTypes);
 
     Table getTable(const std::string& tableName);
-
-private:
-    std::string dataEnumToString(PDataEnum dataEnum) const;
 };
 

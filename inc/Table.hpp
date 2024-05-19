@@ -82,8 +82,13 @@ public:
         return structure;
     }
 
-    DataRow* get(size_t  idx) const { // getter
+    DataRow* getRow(size_t  idx) const { // getter
         size_t  buffIdx = idx % num_files, rowIdx = idx / num_files;
+        size_t row_num = getRowsNum();
+        if (row_num <= idx) {
+            std::cerr << "Bad idx in Table's get : out of range in Table of size " << row_num << std::endl;
+            throw std::runtime_error("Bad get() in Table");
+        }
         if (buffers[buffIdx].rows_read < rowIdx) {
             std::cerr << "Bad idx in Table's get : idx " << rowIdx << " in buffer #" << buffIdx << " is out of range" << std::endl;
             throw std::runtime_error("Bad get() in Table");
@@ -91,17 +96,26 @@ public:
         return buffers[buffIdx].getRow(rowIdx);
     }
 
+    size_t getRowsNum() const noexcept {
+        size_t rows = 0;
+        size_t i = 0;
+        while (i < num_files) {
+            rows += buffers[i].rows_read;
+            ++i;
+        }
+        return rows;
+    }
+
 private:
     std::string name;
     std::vector<PDataEnum> structure;
     std::vector<std::string> col_names;
     size_t  pk_col_idx;
-    size_t  num_files; // max 255 data files per table
+    size_t  num_files;
     RowBuffer* buffers;
     std::string basepath;
     size_t  row_num;
     size_t  col_num;
-    bool mode;
 
     void fromMeta(const std::string& path);
 
