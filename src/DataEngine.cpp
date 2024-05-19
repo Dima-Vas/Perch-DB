@@ -36,9 +36,22 @@ void DataEngine::initTable(const std::string& tableName, const std::vector<std::
             << columnTypes.size() << std::endl;
         throw std::invalid_argument("Bad createTable : column names and types size mismatch");
     }
+#ifdef __linux__
+    std::string table_path = BASEPATH + "/" + tableName + "/";
+#endif
+#ifdef _WIN32
     std::string table_path = BASEPATH + tableName + "\\";
-    std::filesystem::create_directory(table_path);
+#endif
+    if (!std::filesystem::create_directory(table_path)) {
+        std::cerr << "Bad createTable() : directory with path " << table_path << " could not be created : " << strerror(errno) << std::endl;
+    };
+#ifdef __linux__
+    std::ofstream metaFile(table_path + "/meta.pdb");
+#endif
+#ifdef _WIN32
     std::ofstream metaFile(table_path + "\\meta.pdb");
+#endif
+    
     if (!metaFile.is_open()) {
         std::cerr << "Bad createTable() : could not create meta file : " << strerror(errno) << std::endl;
         throw std::runtime_error("Bad createTable() : could not create meta file");
@@ -73,7 +86,12 @@ void DataEngine::initTable(const std::string& tableName, const std::vector<std::
 
 Table DataEngine::getTable(const std::string& tableName) {
     std::ostringstream ss;
-    ss << BASEPATH << tableName << "\\";
+#ifdef __linux__
+    ss << BASEPATH << "/" << tableName << "/";
+#endif
+#ifdef _WIN32
+    ss << BASEPATH << "\\" << tableName << "\\";
+#endif
     Table output{ss.str()};
     return output;
 }

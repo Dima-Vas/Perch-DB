@@ -36,7 +36,7 @@
 void Table::fromMeta(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
-        std::cerr << "Bad fromMeta() : " << strerror(errno) << std::endl;
+        std::cerr << "Bad fromMeta() with path " << path << " : " << strerror(errno) << std::endl;
         throw std::runtime_error("Bad fromMeta()");
     }
     std::string line;

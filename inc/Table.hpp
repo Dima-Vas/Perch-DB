@@ -69,7 +69,12 @@ public:
 
     Table(const std::string& aBasepath) {
         basepath = aBasepath;
+#ifdef __linux__
+        fromMeta(basepath + "/meta.pdb");
+#endif
+#ifdef __WIN32
         fromMeta(basepath + "\\meta.pdb");
+#endif
         readBuffers();
     }
 
@@ -117,7 +122,7 @@ private:
     void readBuffersSeq();
 
 #ifdef __linux__
-    void readBufferLinux();
+    void readBufferLinux(std::string& file_name, size_t buff_idx);
 #endif
 
 #ifdef _WIN32
